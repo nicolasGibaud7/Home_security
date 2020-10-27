@@ -8,12 +8,13 @@ char check_pin(Alarm* alarm){
 	return 1;
 }
 
-void init_alarm(Alarm* alarm, TIM_HandleTypeDef timer){
+void init_alarm(Alarm* alarm, TIM_HandleTypeDef timer_delay, TIM_HandleTypeDef timer_buzzer){
 	alarm->alarm_state = OFF;
 	alarm->starting_cpt = 0;
 	alarm->missed_pin_cpt = 0;
 	
-	alarm->timer = timer;
+	alarm->timer_delay = timer_delay;
+	alarm->timer_buzzer = timer_buzzer;
 	
 	alarm->user_current_pin[0] = 0;
 	alarm->user_current_pin[1] = 0;
@@ -31,20 +32,23 @@ void change_state(Alarm* alarm, Alarm_state new_state){
 	
 	switch(new_state){
 		case OFF: 
+			playPowerOff(&(alarm->timer_buzzer));
 			HAL_GPIO_WritePin(GPIOD, LED_BLUE_Pin | LED_GREEN_Pin | LED_ORANGE_Pin | LED_RED_Pin, GPIO_PIN_RESET);
-			HAL_TIM_Base_Stop_IT(&alarm->timer);
+			HAL_TIM_Base_Stop_IT(&alarm->timer_delay);
 			break;
 		
 		case STARTING:
+			playPowerOn(&(alarm->timer_buzzer));
 			alarm->starting_cpt = 0;
-			HAL_TIM_Base_Start_IT(&(alarm->timer));
+			HAL_TIM_Base_Start_IT(&(alarm->timer_delay));
 			HAL_GPIO_WritePin(GPIOD,LED_ORANGE_Pin, GPIO_PIN_SET);
 			break;
 		
 		case ENGAGED:
 				HAL_GPIO_WritePin(GPIOD, LED_ORANGE_Pin, GPIO_PIN_SET);
 				HAL_GPIO_WritePin(GPIOD, LED_RED_Pin, GPIO_PIN_RESET);
-				HAL_TIM_Base_Stop_IT(&alarm->timer);
+				playEngaged(&(alarm->timer_buzzer));
+				HAL_TIM_Base_Stop_IT(&alarm->timer_delay);
 			break;
 		
 		case TRIGERRED:
@@ -53,13 +57,16 @@ void change_state(Alarm* alarm, Alarm_state new_state){
 			reset_user_pin(alarm);
 		
 			HAL_GPIO_WritePin(GPIOD, LED_RED_Pin | LED_ORANGE_Pin, GPIO_PIN_SET);
-			HAL_TIM_Base_Start_IT(&(alarm->timer));
+			playTrigerred(&(alarm->timer_buzzer));
+			HAL_TIM_Base_Start_IT(&(alarm->timer_delay));
 			break;
 		
 		case ALARM:
+			playTrigerred(&(alarm->timer_buzzer));
 			HAL_GPIO_WritePin(GPIOD, LED_ORANGE_Pin, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(GPIOD, LED_RED_Pin, GPIO_PIN_SET);
-			HAL_TIM_Base_Stop_IT(&alarm->timer);
+			HAL_TIM_Base_Stop_IT(&alarm->timer_delay);
+			playTrigerred(&(alarm->timer_buzzer));
 			break;
 	}
 }

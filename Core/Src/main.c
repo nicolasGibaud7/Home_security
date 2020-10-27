@@ -23,7 +23,6 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../../MDK-ARM/Alarm.h"
-#include "../../MDK-ARM/buzzer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -97,11 +96,8 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-	
-	init_alarm(&myAlarm, htim3);
-//	__HAL_TIM_SET_COMPARE( &htim2, TIM_CHANNEL_1, 100);
-//	HAL_TIM_PWM_Start( &htim2, TIM_CHANNEL_1 );
-	
+	init_alarm(&myAlarm, htim3, htim2);
+		
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -226,7 +222,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 3478;
+  htim2.Init.Period = 4444;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -351,13 +347,13 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
@@ -383,8 +379,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		case OFF:
 			if(GPIO_Pin == BTN_GREEN_Pin){
 				change_state(&myAlarm, STARTING);
-				//playPowerOn(&htim2);
-				playNote(&htim2, 6, 100);
 			}
 			break;
 			
@@ -410,9 +404,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 						if(myAlarm.user_current_pin[i] == 0){
 							myAlarm.user_current_pin[i] = GPIO_Pin;
 							if(i == 3){
-								if(check_pin(&myAlarm))
+								if(check_pin(&myAlarm)){
+									playRightPin(&htim2);
 									change_state(&myAlarm, OFF);
+									HAL_Delay(200);
+								}
 								else{
+									playWrongPin(&htim2);
 									myAlarm.missed_pin_cpt ++;
 									if(myAlarm.missed_pin_cpt >= 3)
 										change_state(&myAlarm, ALARM);
@@ -440,8 +438,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				HAL_GPIO_TogglePin(GPIOD, LED_ORANGE_Pin);
 				myAlarm.starting_cpt ++;
 				
-				if(myAlarm.starting_cpt >= STARTING_TIME)
+				if(myAlarm.starting_cpt >= STARTING_TIME){
 					change_state(&myAlarm, ENGAGED);
+				}
 			break;
 			
 			case TRIGERRED:

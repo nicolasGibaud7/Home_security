@@ -63,6 +63,8 @@ void Error_Handler(void);
 #define BTN_USER_Pin GPIO_PIN_0
 #define BTN_USER_GPIO_Port GPIOA
 #define BTN_USER_EXTI_IRQn EXTI0_IRQn
+#define BUZZER_Pin GPIO_PIN_5
+#define BUZZER_GPIO_Port GPIOA
 #define BTN_BLACK_Pin GPIO_PIN_14
 #define BTN_BLACK_GPIO_Port GPIOB
 #define BTN_BLACK_EXTI_IRQn EXTI15_10_IRQn
