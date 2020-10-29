@@ -36,3 +36,5 @@ void init_alarm(Alarm* alarm, TIM_HandleTypeDef timer);
 void change_state(Alarm* alarm, Alarm_state new_state);
 
 void reset_user_pin(Alarm* alarm);
+
+void setPowerButtonLed(GPIO_PinState pinstate);
