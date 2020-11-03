@@ -54,7 +54,7 @@ void playEngaged(TIM_HandleTypeDef* htim){
 	playNote(htim, 2, 100, 90);
 }
 
-void playNote(TIM_HandleTypeDef* htim, char note, char power, short lenght){
+void playNote(TIM_HandleTypeDef* htim, char note, char power, short length){
 	__HAL_TIM_SET_AUTORELOAD(htim, 3478 + 100 * note);
 	__HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_1, __HAL_TIM_GetAutoreload(htim) * (power/100.0));
 	
