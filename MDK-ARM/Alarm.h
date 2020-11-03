@@ -1,5 +1,6 @@
 #include "stm32f4xx_hal.h"
 #include "main.h"
+#include "buzzer.h"
 
 #define do_nothing() __asm{NOP}
 #define STARTING_TIME 10 //seconde
@@ -27,11 +28,12 @@ typedef struct{
 	uint16_t correct_pin[4];
 	uint16_t user_current_pin[4];
 	
-	TIM_HandleTypeDef timer;
+	TIM_HandleTypeDef timer_delay;
+	TIM_HandleTypeDef timer_buzzer;
 }Alarm;
 
 char check_pin(Alarm* alarm);
-void init_alarm(Alarm* alarm, TIM_HandleTypeDef timer);
+void init_alarm(Alarm* alarm, TIM_HandleTypeDef timer_delay, TIM_HandleTypeDef timer_buzzer);
 
 void change_state(Alarm* alarm, Alarm_state new_state);
 
