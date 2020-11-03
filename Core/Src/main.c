@@ -169,7 +169,7 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 1 */
   htim1.Instance = TIM1;
-  htim1.Init.Prescaler = 50;
+  htim1.Init.Prescaler = 125;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim1.Init.Period = 64000;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -319,12 +319,13 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, LED_GREEN_Pin|LED_ORANGE_Pin|LED_RED_Pin|LED_BLUE_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, BTN_POWER_LED_Pin|LED_GREEN_Pin|LED_ORANGE_Pin|LED_RED_Pin
+                          |LED_BLUE_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : BTN_USER_Pin */
   GPIO_InitStruct.Pin = BTN_USER_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BTN_USER_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : BTN_BLACK_Pin */
@@ -333,14 +334,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(BTN_BLACK_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BTN_BLUE_Pin BTN_RED_Pin BTN_GREEN_Pin BTN_YELLOW_Pin */
-  GPIO_InitStruct.Pin = BTN_BLUE_Pin|BTN_RED_Pin|BTN_GREEN_Pin|BTN_YELLOW_Pin;
+  /*Configure GPIO pins : BTN_BLUE_Pin BTN_POWER_Pin BTN_YELLOW_Pin */
+  GPIO_InitStruct.Pin = BTN_BLUE_Pin|BTN_POWER_Pin|BTN_YELLOW_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LED_GREEN_Pin LED_ORANGE_Pin LED_RED_Pin LED_BLUE_Pin */
-  GPIO_InitStruct.Pin = LED_GREEN_Pin|LED_ORANGE_Pin|LED_RED_Pin|LED_BLUE_Pin;
+  /*Configure GPIO pins : BTN_POWER_LED_Pin LED_GREEN_Pin LED_ORANGE_Pin LED_RED_Pin
+                           LED_BLUE_Pin */
+  GPIO_InitStruct.Pin = BTN_POWER_LED_Pin|LED_GREEN_Pin|LED_ORANGE_Pin|LED_RED_Pin
+                          |LED_BLUE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -377,19 +380,19 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	
 	switch(myAlarm.alarm_state){
 		case OFF:
-			if(GPIO_Pin == BTN_GREEN_Pin){
+			if(GPIO_Pin == BTN_POWER_Pin){
 				change_state(&myAlarm, STARTING);
 			}
 			break;
 			
 		case STARTING:
-			if(GPIO_Pin == BTN_RED_Pin && blue_cpt < 240){
+			if(GPIO_Pin == BTN_POWER_Pin && blue_cpt < 240){
 					change_state(&myAlarm, OFF);
 			}
 			break;
 			
 		case ENGAGED:
-			if(GPIO_Pin == BTN_RED_Pin){
+			if(GPIO_Pin == BTN_POWER_Pin){
 					change_state(&myAlarm, OFF);
 			}
 			else if(GPIO_Pin == BTN_USER_Pin){
