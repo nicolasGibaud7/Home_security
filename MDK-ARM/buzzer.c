@@ -59,7 +59,7 @@ void playNote(TIM_HandleTypeDef* htim, char note, char power, short lenght){
 	__HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_1, __HAL_TIM_GetAutoreload(htim) * (power/100.0));
 	
 	HAL_TIM_PWM_Start(htim, TIM_CHANNEL_1 );
-	HAL_Delay(lenght);
+	HAL_Delay(length);
 	HAL_TIM_PWM_Stop(htim, TIM_CHANNEL_1 );
 	HAL_Delay(7);
 }
