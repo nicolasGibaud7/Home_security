@@ -31,6 +31,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define Z_DOOR_MOVEMENT 2500
+#define Y_DOOR_MOVEMENT 2000
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -48,7 +50,10 @@ TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
-
+Alarm myAlarm;
+uint32_t adc[2];
+uint32_t adc_value[2];
+uint8_t busy_adc = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -66,10 +71,7 @@ static void MX_TIM4_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-	Alarm myAlarm;
-	unsigned char blue_cpt = 0;
-	unsigned char yellow_cpt = 0;
-
+	
 /* USER CODE END 0 */
 
 /**
@@ -107,7 +109,8 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 	init_alarm(&myAlarm, htim3, htim2);
-		
+	HAL_ADC_Start_DMA(&hadc1, adc, 2);
+	HAL_TIM_Base_Start_IT(&htim4);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -206,6 +209,7 @@ static void MX_ADC1_Init(void)
   }
   /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
   */
+  sConfig.Channel = ADC_CHANNEL_2;
   sConfig.Rank = 2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
@@ -501,11 +505,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	last_GPIO_Pin = GPIO_Pin;
 	HAL_TIM_Base_Start(&htim1);
 	
-	if(GPIO_Pin == BTN_YELLOW_Pin)
-			yellow_cpt++;
-	else if(GPIO_Pin == BTN_BLUE_Pin)
-		blue_cpt ++;
-	
 	switch(myAlarm.alarm_state){
 		case OFF:
 			if(GPIO_Pin == BTN_POWER_Pin){
@@ -514,7 +513,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 			break;
 			
 		case STARTING:
-			if(GPIO_Pin == BTN_POWER_Pin && blue_cpt < 240){
+			if(GPIO_Pin == BTN_POWER_Pin){
 					change_state(&myAlarm, OFF);
 			}
 			break;
@@ -586,6 +585,27 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			default:
 				do_nothing();
 		}
+	}
+	if(htim == &htim4) {
+		busy_adc = 1;
+		if (adc_value[0] > Z_DOOR_MOVEMENT && adc_value[1] > Y_DOOR_MOVEMENT) {
+			// door open
+		}
+		busy_adc = 0;
+	}
+}
+
+/**
+  * @brief  Regular conversion complete callback in non blocking mode 
+  * @param  hadc pointer to a ADC_HandleTypeDef structure that contains
+  *         the configuration information for the specified ADC.
+  * @retval None
+  */
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+	if (!busy_adc){
+		adc_value[0] = adc[0];
+		adc_value[1] = adc[1];
 	}
 }
 /* USER CODE END 4 */
