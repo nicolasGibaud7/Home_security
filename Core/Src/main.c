@@ -109,8 +109,8 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 	init_alarm(&myAlarm, htim3, htim2);
-	HAL_ADC_Start_DMA(&hadc1, adc, 2);
-	HAL_TIM_Base_Start_IT(&htim4);
+    HAL_ADC_Start_DMA(&hadc1, adc, 2);
+    HAL_TIM_Base_Start_IT(&htim4);
   /* USER CODE END 2 */
 
   /* Infinite loop */
