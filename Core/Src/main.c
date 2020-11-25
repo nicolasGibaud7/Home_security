@@ -54,6 +54,7 @@ Alarm myAlarm;
 uint32_t adc[2];
 uint32_t adc_value[2];
 uint8_t busy_adc = 0;
+uint8_t keysVal[4][4] = {{'1','4','7','0'},{'2', '5', '8','F'},{'3', '6', '9','E'},{'A', 'B', 'C','D'}};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -66,7 +67,7 @@ static void MX_TIM2_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
-
+char getKeyPressed(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -117,6 +118,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -624,6 +626,33 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 		adc_value[0] = adc[0];
 		adc_value[1] = adc[1];
 	}
+}
+
+
+/**
+  * @brief  Get keypad key pressed in polling mode
+  * @retval Key value pressed or N if no key is pressed
+  */
+char getKeyPressed(){
+	uint16_t pin_value = 0;
+	for(int i=0 ; i<4 ; i++){
+		pin_value =  GPIO_PIN_7 << (i*2);
+		HAL_GPIO_WritePin(GPIOE, pin_value, GPIO_PIN_RESET);	// Put a keypad column to low to read pin values on that column
+		if( HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_8) == GPIO_PIN_RESET){ // Read first button value on keypad
+			return keysVal[i][0];
+		}
+		if( HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_10) == GPIO_PIN_RESET){	// Read second button value on keypad
+			return keysVal[i][1];
+		}
+		if( HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_12) == GPIO_PIN_RESET){	// Read third button on keypad
+			return keysVal[i][2];
+		}
+		if( HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_14) == GPIO_PIN_RESET){	// Read fourth button on keypad
+			return keysVal[i][3];
+		}
+		HAL_GPIO_WritePin(GPIOE, pin_value, GPIO_PIN_SET);	// Put keypad column to high to stop reading values on that column
+	}
+	return 'N';	// Return N if no key is pressed
 }
 /* USER CODE END 4 */
 
